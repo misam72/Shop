@@ -1,1 +1,2 @@
 # Shop
+A django project
