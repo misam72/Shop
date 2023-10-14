@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser
+from .managers import UserManager
 
 ''' Q: what is difference between AbstractBaseUser and AbstractUser in django?
 
@@ -38,13 +39,15 @@ customization and control you require.
 '''
 
 class User(AbstractBaseUser):
-    # we do not need to define password field because it has been 
-    # declared in AbstractBaseUser class.
+    '''we do not need to define password field because it has been 
+    declared in AbstractBaseUser class.'''
     email = models.EmailField(max_length=255, unique=True)
     phone_number = models.CharField(max_length=11, unique=True)
     full_name = models.CharField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    
+    objects = UserManager()
     
     '''The value of unique argument for USERNAME_FIELDs must be True.'''
     USERNAME_FIELD = 'phone_number'
@@ -59,11 +62,6 @@ class User(AbstractBaseUser):
     def __srt__(self):
         return self.email
     
-    def has_perm(self, perm, obj=None):
-        return True
-    
-    def has_module_perms(self, app_label):
-        return True
     ''' Q: what are has_perm and has_module_perms methods?
     has_perm(self, perm, obj=None):
     This method is responsible for checking whether a user has a specific permission. It takes two 
@@ -93,8 +91,13 @@ class User(AbstractBaseUser):
     whether a user has a specific permission or module access based on their attributes, roles, or
     other criteria.
     '''
+    def has_perm(self, perm, obj=None):
+        return True
     
-    ''' What is @property for?
+    def has_module_perms(self, app_label):
+        return True
+    
+    ''' Q: What is @property for?
     Treat method as a variable that the method has been executed (and returned a value). 
     Example:
         class Circle:
