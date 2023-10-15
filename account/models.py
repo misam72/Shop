@@ -43,7 +43,7 @@ class User(AbstractBaseUser):
     declared in AbstractBaseUser class.'''
     email = models.EmailField(max_length=255, unique=True)
     phone_number = models.CharField(max_length=11, unique=True)
-    full_name = models.CharField()
+    full_name = models.CharField(max_length=101)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     
@@ -57,7 +57,7 @@ class User(AbstractBaseUser):
     must enter them in terminal. here username is phone_number 
     and password will be asked by default by django and finally we 
     have to enter 3 fields: email, phone_number and password.'''
-    REQUIRED_FIELDS = ['email']
+    REQUIRED_FIELDS = ['email', 'full_name']
     
     def __srt__(self):
         return self.email
