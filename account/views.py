@@ -5,6 +5,7 @@ from .models import OtpCode, User
 import random
 from utils import send_otp_code
 from django.contrib import messages
+from datetime import datetime, timedelta
 
 
 class UserRegisterView(View):
@@ -44,6 +45,11 @@ class UserRegisterVerifyCodeView(View):
         user_session = request.session['user_registration_info']
         code_instance = OtpCode.objects.get(phone_number = user_session['phone_number'])
         form = self.form_class(request.POST)
+
+        if datetime.now() > code_instance.created.replace(tzinfo=None) + timedelta(minutes=2):
+            messages.error(request, 'Code is not valid.', 'danger')
+            return render(request, 'account/verify.html', {'form': form})
+        
         if form.is_valid():
             cd = form.cleaned_data
             if cd['code'] == code_instance.code:
@@ -57,4 +63,4 @@ class UserRegisterVerifyCodeView(View):
                 messages.error(request, 'Code is wrong', 'danger')
                 return redirect('accounts:verify_code')
         messages.error(request, 'Error', 'danger')
-        return render(request, 'account/verify_code.html', {'form': form})
+        return render(request, 'account/verify.html', {'form': form})
