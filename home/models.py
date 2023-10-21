@@ -1,4 +1,6 @@
 from django.db import models
+from django.urls import reverse
+
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
@@ -20,7 +22,7 @@ class Product(models.Model):
     slug =models.SlugField(max_length=200, unique=True)
     image = models.ImageField(upload_to='products/%Y/%m/%d')
     description = models.TextField()
-    price = models.DecimalField(max_digits=5, decimal_places=2)# 12345.12, 99999.99
+    price = models.DecimalField(max_digits=5, decimal_places=2)# 123.12, 999.99
     # OR for Iranian products: price = models.IntegerField()
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now=True)
@@ -31,4 +33,7 @@ class Product(models.Model):
     
     def __str__(self) -> str:
         return self.name
+    
+    def get_absolute_url(self):
+        return reverse("home:product_detail",args=[self.slug,])
     
