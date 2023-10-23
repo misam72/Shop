@@ -142,4 +142,4 @@ AWS_S3_ENDPOINT_URL = 'https://s3.ir-thr-at1.arvanstorage.ir'
 AWS_STORAGE_BUCKET_NAME = 'my-shop'
 AWS_SERVICE_NAME = 's3'
 AWS_S3_FILE_OVERWRITE = False
-# AWS_LOCAL_STORAGE = f'{BASE_DIR}/aws/'
+AWS_LOCAL_STORAGE = f'{BASE_DIR}/aws/'
