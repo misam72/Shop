@@ -33,7 +33,10 @@ class Cart:
         if pid in self.cart:
             del self.cart[pid]
             self.save()
-        
+    
+    # for counting number of items in CART
+    def __len__(self):
+        return sum(item['quantity'] for item in self.cart.values())
     
     def save(self):
         self.session.modified = True
