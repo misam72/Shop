@@ -4,6 +4,7 @@ from .models import Product, Category
 from . import tasks
 from django.contrib import messages
 from utils import IsAdminUserMixin
+from orders.forms import CartAddForm
 
 
 class HomeView(View):
@@ -18,8 +19,8 @@ class HomeView(View):
 class ProductDetailView(View):
     def get(self, request, slug):
         product = get_object_or_404(Product, slug=slug)
-        print(product.image.url, '***')
-        return render(request, 'home/detail.html', {'product':product})
+        form = CartAddForm()
+        return render(request, 'home/detail.html', {'product':product, 'form': form})
 
 class BucketHome(IsAdminUserMixin, View):
     template_name = 'home/bucket.html'
