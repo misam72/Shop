@@ -123,10 +123,10 @@ class UserLoginVerifyCodeView(View):
         code_instance = OtpCode.objects.get(phone_number=user_session["phone_number"])
         form = self.form_class(request.POST)
 
-        if datetime.now() > code_instance.created.replace(tzinfo=None) + timedelta(minutes=2):
-            code_instance.delete()
-            messages.error(request, "Code is not valid.", "danger")
-            return render(request, "account/verify.html", {"form": form})
+        # if datetime.now() > code_instance.created.replace(tzinfo=None) + timedelta(minutes=2):
+        #     code_instance.delete()
+        #     messages.error(request, "Code is not valid.", "danger")
+        #     return render(request, "account/verify.html", {"form": form})
         
         if form.is_valid():
             cd = form.cleaned_data
