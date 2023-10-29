@@ -44,3 +44,7 @@ class Cart:
     def get_total_price(self):
         print(self.cart)
         return sum(float(item['price']) * item['quantity'] for item in self.cart.values())
+    
+    def clear(self):
+        del self.session[CART_SESSION_ID]
+        self.save()
