@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, AbstractUser
+from django.contrib.auth.models import AbstractBaseUser, AbstractUser, PermissionsMixin
 from .managers import UserManager
 
 ''' Q: what is difference between AbstractBaseUser and AbstractUser in django?
@@ -38,7 +38,7 @@ implementation. The choice between the two depends on the specific needs of your
 customization and control you require.
 '''
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     '''we do not need to define password field because it has been 
     declared in AbstractBaseUser class.'''
     email = models.EmailField(max_length=255, unique=True)
@@ -69,7 +69,8 @@ class User(AbstractBaseUser):
         perm: This parameter represents the permission string that needs to be checked. 
         It typically follows the format "app_label.permission_codename". For example, "polls.add_poll".
         obj (optional): This parameter represents an optional object for which the permission is checked.
-        It can be used when the permission is object-specific. If obj is not provided, the method assumes the permission is for a global scope.
+        It can be used when the permission is object-specific. If obj is not provided, the method 
+        assumes the permission is for a global scope.
 
     In the provided implementation, the has_perm method always returns True. This means that the 
     user is considered to have all permissions. This behavior can be customized based on your 
@@ -91,11 +92,13 @@ class User(AbstractBaseUser):
     whether a user has a specific permission or module access based on their attributes, roles, or
     other criteria.
     '''
-    def has_perm(self, perm, obj=None):
-        return True
+    """ We comment below methods and we use the methods have been implemented in PermissionsMixin.
+    """
+    # def has_perm(self, perm, obj=None):
+    #     return True
     
-    def has_module_perms(self, app_label):
-        return True
+    # def has_module_perms(self, app_label):
+    #     return True
     
     ''' Q: What is @property for?
     Treat method as a variable that the method has been executed (and returned a value). 
