@@ -2,15 +2,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from .cart import Cart
 from home.models import Product
-from .forms import CartAddForm
+from .forms import CartAddForm, CouponApplyForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Coupon
 from django.conf import settings
 import json
 import requests
-import ast
+import datetime
 from django.http import HttpResponse
-
+from django.contrib import messages
 
 class CartView(View):
     def get(self, request):
@@ -53,55 +53,17 @@ class OrderCreateView(LoginRequiredMixin, View):
 
 
 class OrderDetailView(LoginRequiredMixin, View):
+    form_class = CouponApplyForm
+    
     def get(self, request, order_id):
         order = get_object_or_404(Order, id=order_id)
-        return render(request, "orders/order.html", {"order": order})
+        return render(request, "orders/order.html", {"order": order, 'form': self.form_class})
 
 
 ZP_API_REQUEST = f"https://sandbox.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
 ZP_API_VERIFY = f"https://sandbox.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
 ZP_API_STARTPAY = f"https://sandbox.zarinpal.com/pg/StartPay/"
 
-
-class OrderPayView0(LoginRequiredMixin, View):
-    def get(self, request, order_id):
-        order = Order.objects.get(id=order_id)
-        data = {
-            "MerchantID": settings.MERCHANT,
-            "Amount": order.get_total_price(),
-            "Description": "Transaction details...",
-            "Phone": request.user.phone_number,
-            "CallbackURL": "http://127.0.0.1:8080/orders/verify/",
-        }
-        data = json.dumps(data)
-        # set content length by data
-        headers = {'content-type': 'application/json', 'content-length': str(len(data)) }
-        try:
-            response = requests.post(ZP_API_REQUEST, data=data,headers=headers, timeout=10)
-            r = ast.literal_eval(response.text)
-            
-            if response.status_code == 200:
-                response = response.json()
-                if response['Status'] == 100:
-                    return {'status': True, 'url': ZP_API_STARTPAY + str(r['Authority']), 'authority': r['Authority']}
-                else:
-                    return {'status': False, 'code': str(r['Status'])}
-            return response
-        
-        except requests.exceptions.Timeout:
-            return {'status': False, 'code': 'timeout'}
-        except requests.exceptions.ConnectionError:
-            return {'status': False, 'code': 'connection error'}
-        except Exception as e:
-            import sys, os
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            f_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            error_message = ['Internal Server Error.',
-                            str(e),
-                            str(exc_type),
-                            str(f_name),
-                            exc_tb.tb_lineno]
-            print(error_message)
 
 class OrderPayView(LoginRequiredMixin, View):
     def get(self, request, order_id):
@@ -170,3 +132,25 @@ class OrderVerifyView(LoginRequiredMixin, View):
                 return HttpResponse(f"An error happend{req.json()}")
         else:
             return HttpResponse('Transaction failed or canceled by user')
+
+class CouponApplyView(LoginRequiredMixin, View):
+    form_class = CouponApplyForm
+    def post(self, request, order_id):
+        now = datetime.datetime.now()
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            try:
+                coupon = Coupon.objects.get(code__exact=code, valid_from__lte=now, 
+                                            valid_to__gte=now, active=True)
+            except Coupon.DoesNotExist:
+                messages.error(request, 'coupon does not extist.', 'danger')
+                return redirect('orders:order_detail', order_id)
+                
+            order = Order.objects.get(id=order_id)
+            order.discount = coupon.discount
+            order.save()
+        return redirect('orders:order_detail', order_id)
+            
+
+        
