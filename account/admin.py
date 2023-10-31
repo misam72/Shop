@@ -14,6 +14,7 @@ class UserAdmin(BaseUserAdmin):
     
     list_display = ('email', 'phone_number', 'is_admin')
     list_filter = ('is_admin',)
+    readonly_fields = ('last_login',)
     
     fieldsets = (
         ('Main', {'fields':('email', 'phone_number', 'full_name', 'password')}),
