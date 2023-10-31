@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .forms import UserCreationForm, UserChangeForm
@@ -29,6 +30,17 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('email', 'full_name')
     ordering = ('full_name',)
     filter_horizontal = ('groups', 'user_permissions')
+    
+    '''Here with overiding get_form() we do not allow a user to change himself to superuser(A user
+       that has all of the permissions).
+    '''
+    def get_form(self, request, obj=None,**kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        is_superuser = request.user.is_superuser
+        if not is_superuser:
+            form.base_fields['is_superuser'].disabled = True
+        return form
+    
     
 # admin.site.unregister(Group)
 admin.site.register(User, UserAdmin)
